@@ -39,7 +39,8 @@
         "script_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-133555-1569/train_v1.py",
         "weights_output_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-133555-1569/20251215-133555-1569/weights",
         "results_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-133555-1569/20251215-133555-1569/results.csv"
-      }
+      },
+      "script_mode": "template"
     },
     "created_at": "2025-12-15T13:35:55.933239",
     "updated_at": "2025-12-15T13:36:11.777641",
@@ -90,7 +91,8 @@
         "script_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-134440-7918/train_v1.py",
         "weights_output_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-134440-7918/20251215-134440-7918/weights",
         "results_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-134440-7918/20251215-134440-7918/results.csv"
-      }
+      },
+      "script_mode": "template"
     },
     "created_at": "2025-12-15T13:44:40.588714",
     "updated_at": "2025-12-15T13:44:40.810544",
@@ -141,7 +143,8 @@
         "script_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135547-6499/train_v1.py",
         "weights_output_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135547-6499/20251215-135547-6499/weights",
         "results_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135547-6499/20251215-135547-6499/results.csv"
-      }
+      },
+      "script_mode": "template"
     },
     "created_at": "2025-12-15T13:55:47.775604",
     "updated_at": "2025-12-15T13:55:48.001988",
@@ -192,7 +195,8 @@
         "script_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135908-7952/train_v1.py",
         "weights_output_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135908-7952/20251215-135908-7952/weights",
         "results_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135908-7952/20251215-135908-7952/results.csv"
-      }
+      },
+      "script_mode": "template"
     },
     "created_at": "2025-12-15T13:59:08.763552",
     "updated_at": "2025-12-15T13:59:09.789987",
@@ -243,7 +247,8 @@
         "script_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251216-002111-9520/train_v1.py",
         "weights_output_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251216-002111-9520/20251216-002111-9520/weights",
         "results_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251216-002111-9520/20251216-002111-9520/results.csv"
-      }
+      },
+      "script_mode": "template"
     },
     "created_at": "2025-12-16T00:21:11.827351",
     "updated_at": "2025-12-16T00:21:12.054544",
@@ -294,10 +299,63 @@
         "script_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251216-002933-7992/train_v1.py",
         "weights_output_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251216-002933-7992/20251216-002933-7992/weights",
         "results_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251216-002933-7992/20251216-002933-7992/results.csv"
-      }
+      },
+      "script_mode": "template"
     },
     "created_at": "2025-12-16T00:29:33.216344",
     "updated_at": "2025-12-16T00:48:19.439223",
+    "retries": 0,
+    "max_retry": 3,
+    "current_epoch": null,
+    "total_epochs": null,
+    "error_message": null,
+    "script_version": 1
+  },
+  {
+    "task_id": "20251216-030539-6401",
+    "status": "SUCCEEDED",
+    "config": {
+      "task_id": "20251216-030539-6401",
+      "dataset": {
+        "root": "/mnt/e/IDE/AI_Project/yolo_platform/datasets",
+        "data_yaml": "/mnt/e/IDE/AI_Project/yolo_platform/datasets/data.yaml",
+        "task_type": "detect",
+        "train_dir": null,
+        "val_dir": null,
+        "test_dir": null,
+        "labels_dir": null
+      },
+      "model": {
+        "family": "yolov8",
+        "task": "detect",
+        "size": "n",
+        "pretrained_weights": "/mnt/e/IDE/AI_Project/yolo_platform/model/yolov8n.pt",
+        "device": "0"
+      },
+      "train_params": {
+        "epochs": 1,
+        "batch_size": 16,
+        "imgsz": 640,
+        "lr0": 0.01,
+        "lrf": null,
+        "momentum": null,
+        "workers": 8,
+        "project": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-030539-6401",
+        "name": "20251216-030539-6401",
+        "save_period": null,
+        "seed": null
+      },
+      "runtime": {
+        "project_dir": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-030539-6401",
+        "log_path": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-030539-6401/train.log",
+        "script_path": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-030539-6401/train_v1.py",
+        "weights_output_dir": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-030539-6401/20251216-030539-6401/weights",
+        "results_path": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-030539-6401/20251216-030539-6401/results.csv"
+      },
+      "script_mode": "deepseek"
+    },
+    "created_at": "2025-12-16T03:05:39.374427",
+    "updated_at": "2025-12-16T03:44:06.249306",
     "retries": 0,
     "max_retry": 3,
     "current_epoch": null,

@@ -71,6 +71,7 @@ class TaskConfig(BaseModel):
     model: ModelConfig
     train_params: TrainParams
     runtime: RuntimePaths
+    script_mode: Literal["deepseek", "template"] = "template"
 
     @validator("task_id", pre=True, always=True)
     def _fill_task_id(cls, v: Optional[str]) -> str:

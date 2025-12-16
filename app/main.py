@@ -26,6 +26,83 @@ from app.services.run_executor import RunExecutor
 from app.services.task_manager import TaskManager
 
 
+APP_CSS = """
+:root {
+  --brand-primary: #0f766e;
+  --brand-secondary: #f97316;
+  --surface: #ffffff;
+  --muted: #f1f5f9;
+  --border: #d6e3f0;
+  --text: #0f172a;
+}
+
+#yolo-app {
+  background:
+    radial-gradient(circle at 20% 20%, #f0f9ff 0%, #ffffff 28%),
+    radial-gradient(circle at 85% 0%, #fff7ed 0%, #ffffff 32%);
+  color: var(--text);
+}
+
+#yolo-app .hero {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #e0f4ff 0%, #fff4e5 100%);
+  box-shadow: 0 12px 28px rgba(15, 118, 110, 0.12);
+}
+
+#yolo-app .card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 10px 24px rgba(15, 118, 110, 0.08);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+#yolo-app .card h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+#yolo-app .cta-card {
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  color: #ffffff;
+  box-shadow: 0 16px 32px rgba(20, 184, 166, 0.35);
+}
+
+#yolo-app .cta-card textarea,
+#yolo-app .cta-card label {
+  color: #0f172a;
+}
+
+#yolo-app .accent-btn button {
+  background: linear-gradient(135deg, #0f766e 0%, #0ea5e9 100%);
+  color: #ffffff;
+  border: none;
+}
+
+#yolo-app .accent-secondary button {
+  background: linear-gradient(135deg, #f97316 0%, #f59e0b 100%);
+  color: #0f172a;
+  border: none;
+}
+
+#yolo-app .compact-input input,
+#yolo-app .compact-input textarea,
+#yolo-app .compact-input select {
+  border-radius: 10px;
+  border-color: var(--border);
+  background: #f8fafc;
+}
+
+#tasks-grid {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 18px rgba(15, 118, 110, 0.05);
+}
+"""
+
 BASE_DIR = Path(__file__).resolve().parent
 STORAGE_DIR = BASE_DIR / "storage"
 PROJECTS_DIR = STORAGE_DIR / "projects"
@@ -66,6 +143,7 @@ def _build_task_config(
     momentum: Optional[float] = None,
     save_period: Optional[int] = None,
     seed: Optional[int] = None,
+    script_mode: str = "template",
 ) -> TaskConfig:
     task_id = datetime.utcnow().strftime("%Y%m%d-%H%M%S-") + str(random.randint(1000, 9999))
     runtime = _runtime_paths(task_id)
@@ -100,6 +178,7 @@ def _build_task_config(
         model=model_cfg,
         train_params=train_params,
         runtime=runtime,
+        script_mode=script_mode,  # type: ignore[arg-type]
     )
 
 
@@ -153,7 +232,11 @@ def list_tasks_ui(status_filter: Optional[str]) -> List[Dict]:
                 "retries": task.retries,
             }
         )
-    return rows
+    # Return a DataFrame to avoid Gradio rendering dicts as "[object Object]"
+    return pd.DataFrame(
+        rows,
+        columns=["task_id", "status", "model", "dataset", "created_at", "updated_at", "retries"],
+    )
 
 
 def run_env_check() -> str:
@@ -218,6 +301,7 @@ def start_task(
     momentum: float,
     save_period: int,
     seed: int,
+    script_mode: str,
 ) -> str:
     cfg = _build_task_config(
         dataset_root=dataset_root,
@@ -237,6 +321,7 @@ def start_task(
         momentum=float(momentum) if momentum else None,
         save_period=int(save_period) if save_period else None,
         seed=int(seed) if seed else None,
+        script_mode=script_mode or "template",
     )
     validation = dataset_validator.validate_dataset(cfg.dataset)
     if not validation.ok:
@@ -289,13 +374,27 @@ def cancel_task(task_id: str) -> str:
 
 
 def build_ui():
-    with gr.Blocks(theme="base", css="") as demo:
-        gr.Markdown("# YOLO 训练平台（Ultralytics）")
+    with gr.Blocks(theme="base", css=APP_CSS, elem_id="yolo-app") as demo:
+        gr.Markdown(
+            """
+            <div class="hero">
+              <h1 style="margin:0;">深度学习训练平台</h1>
+              <p style="margin:6px 0 0 0;">可视化创建任务、校验数据、启动训练与查看指标。支持 DeepSeek 生成脚本或本地模板。</p>
+            </div>
+            """,
+            elem_id="hero",
+        )
         with gr.Tab("任务列表"):
-            status_filter = gr.Dropdown(
-                [s.value for s in TaskStatus], label="状态筛选", value=None, allow_custom_value=True
-            )
-            refresh = gr.Button("刷新任务列表")
+            gr.Markdown("### 任务总览")
+            with gr.Row():
+                status_filter = gr.Dropdown(
+                    [s.value for s in TaskStatus],
+                    label="状态筛选",
+                    value=None,
+                    allow_custom_value=True,
+                    elem_classes=["compact-input"],
+                )
+                refresh = gr.Button("刷新任务列表", elem_classes=["accent-btn"])
             tasks_grid = gr.Dataframe(
                 headers=["task_id", "status", "model", "dataset", "created_at", "updated_at", "retries"],
                 datatype=["str", "str", "str", "str", "str", "str", "number"],
@@ -306,104 +405,156 @@ def build_ui():
             refresh.click(list_tasks_ui, inputs=[status_filter], outputs=[tasks_grid])
 
         with gr.Tab("新建任务"):
-            gr.Markdown("## 环境检测")
-            env_btn = gr.Button("检测环境")
-            env_output = gr.Textbox(label="检测结果", lines=6)
-            env_btn.click(run_env_check, outputs=env_output)
+            gr.Markdown("### 配置与启动")
+            with gr.Row():
+                with gr.Column(scale=6):
+                    with gr.Group(elem_classes=["card"]):
+                        gr.Markdown("#### 环境检测")
+                        env_btn = gr.Button("检测环境", elem_classes=["accent-btn"])
+                        env_output = gr.Textbox(label="检测结果", lines=5)
+                        env_btn.click(run_env_check, outputs=env_output)
 
-            gr.Markdown("## 数据集")
-            dataset_root = gr.Textbox(
-                label="数据集根目录",
-                value="/mnt/e/IDE/AI_Project/yolo_platform/datasets",
-            )
-            data_yaml = gr.Textbox(
-                label="data.yaml 路径（推荐）",
-                value="/mnt/e/IDE/AI_Project/yolo_platform/datasets/data.yaml",
-            )
-            task_type = gr.Dropdown(["detect", "segment"], label="任务类型", value="detect")
-            train_dir = gr.Textbox(label="train 图像目录（可选）")
-            val_dir = gr.Textbox(label="val 图像目录（可选）")
-            test_dir = gr.Textbox(label="test 图像目录（可选）")
-            labels_dir = gr.Textbox(label="labels 目录（可选）")
-            validate_btn = gr.Button("校验数据集")
-            validate_out = gr.Textbox(label="校验结果", lines=6)
-            validate_btn.click(
-                run_dataset_validation,
-                inputs=[dataset_root, data_yaml, task_type, train_dir, val_dir, test_dir, labels_dir],
-                outputs=validate_out,
-            )
+                    with gr.Group(elem_classes=["card"]):
+                        gr.Markdown("#### 数据集配置")
+                        dataset_root = gr.Textbox(
+                            label="数据集根目录",
+                            value="/mnt/e/IDE/AI_Project/yolo_platform/datasets",
+                            elem_classes=["compact-input"],
+                        )
+                        data_yaml = gr.Textbox(
+                            label="data.yaml 路径（推荐）",
+                            value="/mnt/e/IDE/AI_Project/yolo_platform/datasets/data.yaml",
+                            elem_classes=["compact-input"],
+                        )
+                        task_type = gr.Dropdown(
+                            ["detect", "segment"],
+                            label="任务类型",
+                            value="detect",
+                            elem_classes=["compact-input"],
+                        )
+                        with gr.Row():
+                            train_dir = gr.Textbox(label="train 图像目录（可选）", elem_classes=["compact-input"])
+                            val_dir = gr.Textbox(label="val 图像目录（可选）", elem_classes=["compact-input"])
+                        with gr.Row():
+                            test_dir = gr.Textbox(label="test 图像目录（可选）", elem_classes=["compact-input"])
+                            labels_dir = gr.Textbox(label="labels 目录（可选）", elem_classes=["compact-input"])
+                        validate_btn = gr.Button("校验数据集", elem_classes=["accent-secondary"])
+                        validate_out = gr.Textbox(label="校验结果", lines=5)
+                        validate_btn.click(
+                            run_dataset_validation,
+                            inputs=[dataset_root, data_yaml, task_type, train_dir, val_dir, test_dir, labels_dir],
+                            outputs=validate_out,
+                        )
+                with gr.Column(scale=6):
+                    with gr.Group(elem_classes=["card"]):
+                        gr.Markdown("#### 模型配置")
+                        with gr.Row():
+                            model_family = gr.Dropdown(
+                                ["yolov8", "yolov10"],
+                                label="模型族",
+                                value="yolov8",
+                                elem_classes=["compact-input"],
+                            )
+                            model_task = gr.Dropdown(
+                                ["detect", "segment"],
+                                label="模型任务",
+                                value="detect",
+                                elem_classes=["compact-input"],
+                            )
+                            model_size = gr.Dropdown(
+                                ["n", "s", "m", "l", "x"],
+                                label="模型规模",
+                                value="n",
+                                elem_classes=["compact-input"],
+                            )
+                        pretrained_weights = gr.Textbox(
+                            label="预训练权重路径（可选）",
+                            value="/mnt/e/IDE/AI_Project/yolo_platform/model/yolov8n.pt",
+                            elem_classes=["compact-input"],
+                        )
+                        device = gr.Textbox(label="设备（如 0 或 0,1 或 cpu）", value="0", elem_classes=["compact-input"])
 
-            gr.Markdown("## 模型与训练参数")
-            with gr.Row():
-                model_family = gr.Dropdown(["yolov8", "yolov10"], label="模型族", value="yolov8")
-                model_task = gr.Dropdown(["detect", "segment"], label="模型任务", value="detect")
-                model_size = gr.Dropdown(["n", "s", "m", "l", "x"], label="模型规模", value="n")
-            pretrained_weights = gr.Textbox(
-                label="预训练权重路径（可选）",
-                value="/mnt/e/IDE/AI_Project/yolo_platform/model/yolov8n.pt",
-            )
-            device = gr.Textbox(label="设备（如 0 或 0,1 或 cpu）", value="0")
-            with gr.Row():
-                epochs = gr.Number(label="epochs", value=100, precision=0)
-                batch_size = gr.Number(label="batch_size", value=16, precision=0)
-                imgsz = gr.Number(label="imgsz", value=640, precision=0)
-            with gr.Row():
-                lr0 = gr.Number(label="lr0", value=0.01)
-                lrf = gr.Number(label="lrf（可选）", value=None)
-                momentum = gr.Number(label="momentum（可选）", value=None)
-            with gr.Row():
-                workers = gr.Number(label="workers", value=8, precision=0)
-                save_period = gr.Number(label="save_period（可选）", value=None, precision=0)
-                seed = gr.Number(label="seed（可选）", value=None, precision=0)
-            start_btn = gr.Button("生成并启动任务", variant="primary")
-            start_out = gr.Textbox(label="任务创建结果", lines=4)
-            start_btn.click(
-                start_task,
-                inputs=[
-                    dataset_root,
-                    data_yaml,
-                    task_type,
-                    model_family,
-                    model_task,
-                    model_size,
-                    pretrained_weights,
-                    device,
-                    epochs,
-                    batch_size,
-                    imgsz,
-                    lr0,
-                    workers,
-                    lrf,
-                    momentum,
-                    save_period,
-                    seed,
-                ],
-                outputs=start_out,
-            )
+                    with gr.Group(elem_classes=["card"]):
+                        gr.Markdown("#### 训练参数")
+                        with gr.Row():
+                            epochs = gr.Number(label="epochs", value=100, precision=0)
+                            batch_size = gr.Number(label="batch_size", value=16, precision=0)
+                            imgsz = gr.Number(label="imgsz", value=640, precision=0)
+                        with gr.Row():
+                            lr0 = gr.Number(label="lr0", value=0.01)
+                            lrf = gr.Number(label="lrf（可选）", value=None)
+                            momentum = gr.Number(label="momentum（可选）", value=None)
+                        with gr.Row():
+                            workers = gr.Number(label="workers", value=8, precision=0)
+                            save_period = gr.Number(label="save_period（可选）", value=None, precision=0)
+                            seed = gr.Number(label="seed（可选）", value=None, precision=0)
+
+                    with gr.Group(elem_classes=["card", "cta-card"]):
+                        gr.Markdown("#### 脚本生成与启动")
+                        script_mode = gr.Radio(
+                            ["template", "deepseek"],
+                            label="脚本生成方式",
+                            value="template",
+                            info="选择使用本地模板或 DeepSeek 生成训练脚本（DeepSeek 至多尝试 3 次后回退模板）",
+                        )
+                        start_btn = gr.Button("生成并启动任务", variant="primary")
+                        start_out = gr.Textbox(label="任务创建结果", lines=4)
+                        start_btn.click(
+                            start_task,
+                            inputs=[
+                                dataset_root,
+                                data_yaml,
+                                task_type,
+                                model_family,
+                                model_task,
+                                model_size,
+                                pretrained_weights,
+                                device,
+                                epochs,
+                                batch_size,
+                                imgsz,
+                                lr0,
+                                workers,
+                                lrf,
+                                momentum,
+                                save_period,
+                                seed,
+                                script_mode,
+                            ],
+                            outputs=start_out,
+                        )
 
         with gr.Tab("任务详情"):
-            task_id_box = gr.Textbox(label="任务 ID")
-            refresh_detail = gr.Button("刷新详情")
-            status_box = gr.Textbox(label="状态")
-            log_box = gr.Textbox(label="日志尾部", lines=12)
-            metrics_json = gr.JSON(label="指标 JSON")
-            metrics_plot = gr.LinePlot(
-                x="epoch",
-                y="value",
-                color="metric",
-                title="训练指标",
-                overlay_point=True,
-                height=300,
-            )
+            gr.Markdown("### 任务详情")
+            with gr.Group(elem_classes=["card"]):
+                with gr.Row():
+                    task_id_box = gr.Textbox(label="任务 ID", elem_classes=["compact-input"])
+                    refresh_detail = gr.Button("刷新详情", elem_classes=["accent-btn"])
+                cancel_btn = gr.Button("终止任务", variant="stop", elem_classes=["accent-secondary"])
+                cancel_out = gr.Textbox(label="终止结果")
+                cancel_btn.click(cancel_task, inputs=[task_id_box], outputs=cancel_out)
+
+            with gr.Row():
+                with gr.Column(scale=5):
+                    with gr.Group(elem_classes=["card"]):
+                        status_box = gr.Textbox(label="状态")
+                        log_box = gr.Textbox(label="日志尾部", lines=12)
+                with gr.Column(scale=7):
+                    with gr.Group(elem_classes=["card"]):
+                        metrics_json = gr.JSON(label="指标 JSON")
+                        metrics_plot = gr.LinePlot(
+                            x="epoch",
+                            y="value",
+                            color="metric",
+                            title="训练指标",
+                            overlay_point=True,
+                            height=320,
+                        )
             refresh_detail.click(
                 get_task_detail,
                 inputs=[task_id_box],
                 outputs=[status_box, log_box, metrics_json, metrics_plot],
             )
-
-            cancel_btn = gr.Button("终止任务", variant="stop")
-            cancel_out = gr.Textbox(label="终止结果")
-            cancel_btn.click(cancel_task, inputs=[task_id_box], outputs=cancel_out)
 
     return demo
 
