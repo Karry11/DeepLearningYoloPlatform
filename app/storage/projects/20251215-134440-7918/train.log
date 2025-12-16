@@ -1,0 +1,4 @@
+  File "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-134440-7918/train_v1.py", line 26
+    logger.info("Environment summary: {
+                ^
+SyntaxError: unterminated string literal (detected at line 26)
