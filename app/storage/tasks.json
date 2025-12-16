@@ -1,265 +1,5 @@
 [
   {
-    "task_id": "20251215-133555-1569",
-    "status": "FAILED",
-    "config": {
-      "task_id": "20251215-133555-1569",
-      "dataset": {
-        "root": "/mnt/e/IDE/AI_Project/yolo_platform/datasets",
-        "data_yaml": "/mnt/e/IDE/AI_Project/yolo_platform/datasets/data.yaml",
-        "task_type": "detect",
-        "train_dir": null,
-        "val_dir": null,
-        "test_dir": null,
-        "labels_dir": null
-      },
-      "model": {
-        "family": "yolov8",
-        "task": "detect",
-        "size": "n",
-        "pretrained_weights": "/mnt/e/IDE/AI_Project/yolo_platform/model/yolov8n.pt",
-        "device": "0"
-      },
-      "train_params": {
-        "epochs": 1,
-        "batch_size": 4,
-        "imgsz": 640,
-        "lr0": 0.01,
-        "lrf": null,
-        "momentum": null,
-        "workers": 4,
-        "project": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-133555-1569",
-        "name": "20251215-133555-1569",
-        "save_period": null,
-        "seed": null
-      },
-      "runtime": {
-        "project_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-133555-1569",
-        "log_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-133555-1569/train.log",
-        "script_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-133555-1569/train_v1.py",
-        "weights_output_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-133555-1569/20251215-133555-1569/weights",
-        "results_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-133555-1569/20251215-133555-1569/results.csv"
-      },
-      "script_mode": "template"
-    },
-    "created_at": "2025-12-15T13:35:55.933239",
-    "updated_at": "2025-12-15T13:36:11.777641",
-    "retries": 0,
-    "max_retry": 3,
-    "current_epoch": null,
-    "total_epochs": null,
-    "error_message": "  File \"/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-133555-1569/train_v1.py\", line 26     logger.info(\"Environment summary: {                 ^ SyntaxError: unterminated string literal (detected at line 26)",
-    "script_version": 1
-  },
-  {
-    "task_id": "20251215-134440-7918",
-    "status": "RUNNING",
-    "config": {
-      "task_id": "20251215-134440-7918",
-      "dataset": {
-        "root": "/mnt/e/IDE/AI_Project/yolo_platform/datasets",
-        "data_yaml": "/mnt/e/IDE/AI_Project/yolo_platform/datasets/data.yaml",
-        "task_type": "detect",
-        "train_dir": null,
-        "val_dir": null,
-        "test_dir": null,
-        "labels_dir": null
-      },
-      "model": {
-        "family": "yolov8",
-        "task": "detect",
-        "size": "n",
-        "pretrained_weights": "/mnt/e/IDE/AI_Project/yolo_platform/model/yolov8n.pt",
-        "device": "0"
-      },
-      "train_params": {
-        "epochs": 100,
-        "batch_size": 16,
-        "imgsz": 640,
-        "lr0": 0.01,
-        "lrf": null,
-        "momentum": null,
-        "workers": 8,
-        "project": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-134440-7918",
-        "name": "20251215-134440-7918",
-        "save_period": null,
-        "seed": null
-      },
-      "runtime": {
-        "project_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-134440-7918",
-        "log_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-134440-7918/train.log",
-        "script_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-134440-7918/train_v1.py",
-        "weights_output_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-134440-7918/20251215-134440-7918/weights",
-        "results_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-134440-7918/20251215-134440-7918/results.csv"
-      },
-      "script_mode": "template"
-    },
-    "created_at": "2025-12-15T13:44:40.588714",
-    "updated_at": "2025-12-15T13:44:40.810544",
-    "retries": 0,
-    "max_retry": 3,
-    "current_epoch": null,
-    "total_epochs": null,
-    "error_message": null,
-    "script_version": 1
-  },
-  {
-    "task_id": "20251215-135547-6499",
-    "status": "RUNNING",
-    "config": {
-      "task_id": "20251215-135547-6499",
-      "dataset": {
-        "root": "/mnt/e/IDE/AI_Project/yolo_platform/datasets",
-        "data_yaml": "/mnt/e/IDE/AI_Project/yolo_platform/datasets/data.yaml",
-        "task_type": "detect",
-        "train_dir": null,
-        "val_dir": null,
-        "test_dir": null,
-        "labels_dir": null
-      },
-      "model": {
-        "family": "yolov8",
-        "task": "detect",
-        "size": "n",
-        "pretrained_weights": "/mnt/e/IDE/AI_Project/yolo_platform/model/yolov8n.pt",
-        "device": "0"
-      },
-      "train_params": {
-        "epochs": 100,
-        "batch_size": 16,
-        "imgsz": 640,
-        "lr0": 0.01,
-        "lrf": null,
-        "momentum": null,
-        "workers": 8,
-        "project": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135547-6499",
-        "name": "20251215-135547-6499",
-        "save_period": null,
-        "seed": null
-      },
-      "runtime": {
-        "project_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135547-6499",
-        "log_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135547-6499/train.log",
-        "script_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135547-6499/train_v1.py",
-        "weights_output_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135547-6499/20251215-135547-6499/weights",
-        "results_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135547-6499/20251215-135547-6499/results.csv"
-      },
-      "script_mode": "template"
-    },
-    "created_at": "2025-12-15T13:55:47.775604",
-    "updated_at": "2025-12-15T13:55:48.001988",
-    "retries": 0,
-    "max_retry": 3,
-    "current_epoch": null,
-    "total_epochs": null,
-    "error_message": null,
-    "script_version": 1
-  },
-  {
-    "task_id": "20251215-135908-7952",
-    "status": "RUNNING",
-    "config": {
-      "task_id": "20251215-135908-7952",
-      "dataset": {
-        "root": "/mnt/e/IDE/AI_Project/yolo_platform/datasets",
-        "data_yaml": "/mnt/e/IDE/AI_Project/yolo_platform/datasets/data.yaml",
-        "task_type": "detect",
-        "train_dir": null,
-        "val_dir": null,
-        "test_dir": null,
-        "labels_dir": null
-      },
-      "model": {
-        "family": "yolov8",
-        "task": "detect",
-        "size": "n",
-        "pretrained_weights": "/mnt/e/IDE/AI_Project/yolo_platform/model/yolov8n.pt",
-        "device": "0"
-      },
-      "train_params": {
-        "epochs": 100,
-        "batch_size": 16,
-        "imgsz": 640,
-        "lr0": 0.01,
-        "lrf": null,
-        "momentum": null,
-        "workers": 8,
-        "project": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135908-7952",
-        "name": "20251215-135908-7952",
-        "save_period": null,
-        "seed": null
-      },
-      "runtime": {
-        "project_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135908-7952",
-        "log_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135908-7952/train.log",
-        "script_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135908-7952/train_v1.py",
-        "weights_output_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135908-7952/20251215-135908-7952/weights",
-        "results_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251215-135908-7952/20251215-135908-7952/results.csv"
-      },
-      "script_mode": "template"
-    },
-    "created_at": "2025-12-15T13:59:08.763552",
-    "updated_at": "2025-12-15T13:59:09.789987",
-    "retries": 0,
-    "max_retry": 3,
-    "current_epoch": null,
-    "total_epochs": null,
-    "error_message": null,
-    "script_version": 1
-  },
-  {
-    "task_id": "20251216-002111-9520",
-    "status": "RUNNING",
-    "config": {
-      "task_id": "20251216-002111-9520",
-      "dataset": {
-        "root": "/mnt/e/IDE/AI_Project/yolo_platform/datasets",
-        "data_yaml": "/mnt/e/IDE/AI_Project/yolo_platform/datasets/data.yaml",
-        "task_type": "detect",
-        "train_dir": null,
-        "val_dir": null,
-        "test_dir": null,
-        "labels_dir": null
-      },
-      "model": {
-        "family": "yolov8",
-        "task": "detect",
-        "size": "n",
-        "pretrained_weights": "/mnt/e/IDE/AI_Project/yolo_platform/model/yolov8n.pt",
-        "device": "0"
-      },
-      "train_params": {
-        "epochs": 100,
-        "batch_size": 16,
-        "imgsz": 640,
-        "lr0": 0.01,
-        "lrf": null,
-        "momentum": null,
-        "workers": 8,
-        "project": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251216-002111-9520",
-        "name": "20251216-002111-9520",
-        "save_period": null,
-        "seed": null
-      },
-      "runtime": {
-        "project_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251216-002111-9520",
-        "log_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251216-002111-9520/train.log",
-        "script_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251216-002111-9520/train_v1.py",
-        "weights_output_dir": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251216-002111-9520/20251216-002111-9520/weights",
-        "results_path": "/mnt/e/IDE/AI_Project/require/app/storage/projects/20251216-002111-9520/20251216-002111-9520/results.csv"
-      },
-      "script_mode": "template"
-    },
-    "created_at": "2025-12-16T00:21:11.827351",
-    "updated_at": "2025-12-16T00:21:12.054544",
-    "retries": 0,
-    "max_retry": 3,
-    "current_epoch": null,
-    "total_epochs": null,
-    "error_message": null,
-    "script_version": 1
-  },
-  {
     "task_id": "20251216-002933-7992",
     "status": "SUCCEEDED",
     "config": {
@@ -274,11 +14,13 @@
         "labels_dir": null
       },
       "model": {
+        "kind": "yolo",
         "family": "yolov8",
         "task": "detect",
         "size": "n",
         "pretrained_weights": "/mnt/e/IDE/AI_Project/yolo_platform/model/yolov8n.pt",
-        "device": "0"
+        "device": "0",
+        "custom_description": null
       },
       "train_params": {
         "epochs": 1,
@@ -326,11 +68,13 @@
         "labels_dir": null
       },
       "model": {
+        "kind": "yolo",
         "family": "yolov8",
         "task": "detect",
         "size": "n",
         "pretrained_weights": "/mnt/e/IDE/AI_Project/yolo_platform/model/yolov8n.pt",
-        "device": "0"
+        "device": "0",
+        "custom_description": null
       },
       "train_params": {
         "epochs": 1,
@@ -356,6 +100,168 @@
     },
     "created_at": "2025-12-16T03:05:39.374427",
     "updated_at": "2025-12-16T03:44:06.249306",
+    "retries": 0,
+    "max_retry": 3,
+    "current_epoch": null,
+    "total_epochs": null,
+    "error_message": null,
+    "script_version": 1
+  },
+  {
+    "task_id": "20251216-152030-4498",
+    "status": "RUNNING",
+    "config": {
+      "task_id": "20251216-152030-4498",
+      "dataset": {
+        "root": "/mnt/e/IDE/AI_Project/yolo_platform/datasets",
+        "data_yaml": "/mnt/e/IDE/AI_Project/yolo_platform/datasets/data.yaml",
+        "task_type": "detect",
+        "train_dir": null,
+        "val_dir": null,
+        "test_dir": null,
+        "labels_dir": null
+      },
+      "model": {
+        "kind": "custom",
+        "family": "yolov8",
+        "task": "detect",
+        "size": "n",
+        "pretrained_weights": "/mnt/e/IDE/AI_Project/yolo_platform/model/yolov8n.pt",
+        "device": "0",
+        "custom_description": "RestNet18 backbone + FPN + 3heads"
+      },
+      "train_params": {
+        "epochs": 2,
+        "batch_size": 16,
+        "imgsz": 640,
+        "lr0": 0.01,
+        "lrf": null,
+        "momentum": null,
+        "workers": 8,
+        "project": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-152030-4498",
+        "name": "20251216-152030-4498",
+        "save_period": null,
+        "seed": null
+      },
+      "runtime": {
+        "project_dir": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-152030-4498",
+        "log_path": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-152030-4498/train.log",
+        "script_path": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-152030-4498/train_v1.py",
+        "weights_output_dir": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-152030-4498/20251216-152030-4498/weights",
+        "results_path": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-152030-4498/20251216-152030-4498/results.csv"
+      },
+      "script_mode": "deepseek"
+    },
+    "created_at": "2025-12-16T15:20:30.324146",
+    "updated_at": "2025-12-16T15:22:46.714524",
+    "retries": 0,
+    "max_retry": 3,
+    "current_epoch": null,
+    "total_epochs": null,
+    "error_message": null,
+    "script_version": 1
+  },
+  {
+    "task_id": "20251216-155525-9990",
+    "status": "FAILED",
+    "config": {
+      "task_id": "20251216-155525-9990",
+      "dataset": {
+        "root": "/mnt/e/data/beans",
+        "data_yaml": null,
+        "task_type": "classify",
+        "train_dir": null,
+        "val_dir": null,
+        "test_dir": null,
+        "labels_dir": null
+      },
+      "model": {
+        "kind": "custom",
+        "family": "yolov8",
+        "task": "detect",
+        "size": "n",
+        "pretrained_weights": null,
+        "device": "0",
+        "custom_description": "采用5层的卷积神经网络对数据集进行三分类模型训练"
+      },
+      "train_params": {
+        "epochs": 1,
+        "batch_size": 16,
+        "imgsz": 640,
+        "lr0": 0.01,
+        "lrf": null,
+        "momentum": null,
+        "workers": 4,
+        "project": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-155525-9990",
+        "name": "20251216-155525-9990",
+        "save_period": null,
+        "seed": null
+      },
+      "runtime": {
+        "project_dir": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-155525-9990",
+        "log_path": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-155525-9990/train.log",
+        "script_path": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-155525-9990/train_v1.py",
+        "weights_output_dir": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-155525-9990/20251216-155525-9990/weights",
+        "results_path": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-155525-9990/20251216-155525-9990/results.csv"
+      },
+      "script_mode": "deepseek"
+    },
+    "created_at": "2025-12-16T15:55:25.912002",
+    "updated_at": "2025-12-16T16:01:51.661880",
+    "retries": 0,
+    "max_retry": 3,
+    "current_epoch": null,
+    "total_epochs": null,
+    "error_message": "CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect. For debugging consider passing CUDA_LAUNCH_BLOCKING=1 Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.  ",
+    "script_version": 1
+  },
+  {
+    "task_id": "20251216-161428-7408",
+    "status": "RUNNING",
+    "config": {
+      "task_id": "20251216-161428-7408",
+      "dataset": {
+        "root": "/mnt/e/data/beans",
+        "data_yaml": null,
+        "task_type": "classify",
+        "train_dir": null,
+        "val_dir": null,
+        "test_dir": null,
+        "labels_dir": null
+      },
+      "model": {
+        "kind": "custom",
+        "family": "yolov8",
+        "task": "detect",
+        "size": "n",
+        "pretrained_weights": null,
+        "device": "0",
+        "custom_description": "使用一个3层的卷积神经网络完成图像分类"
+      },
+      "train_params": {
+        "epochs": 1,
+        "batch_size": 4,
+        "imgsz": 640,
+        "lr0": 0.01,
+        "lrf": null,
+        "momentum": null,
+        "workers": 2,
+        "project": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-161428-7408",
+        "name": "20251216-161428-7408",
+        "save_period": null,
+        "seed": null
+      },
+      "runtime": {
+        "project_dir": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-161428-7408",
+        "log_path": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-161428-7408/train.log",
+        "script_path": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-161428-7408/train_v1.py",
+        "weights_output_dir": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-161428-7408/20251216-161428-7408/weights",
+        "results_path": "/mnt/e/IDE/AI_Project/DeepLearningYoloPlatform/app/storage/projects/20251216-161428-7408/20251216-161428-7408/results.csv"
+      },
+      "script_mode": "deepseek"
+    },
+    "created_at": "2025-12-16T16:14:28.343463",
+    "updated_at": "2025-12-16T16:16:06.528177",
     "retries": 0,
     "max_retry": 3,
     "current_epoch": null,

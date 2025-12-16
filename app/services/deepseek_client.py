@@ -48,24 +48,50 @@ class DeepSeekClient:
         task_json = task.model_dump(mode="json")
         log_part = last_log_snippet or "No error log available."
         prev_part = previous_script or ""
-        instructions = dedent(
-            """
-            You are an assistant that writes a single Python training script for Ultralytics YOLO (v8/v10).
-            Constraints:
-            - Only produce Python code fenced in ```python ... ```.
-            - Use `from ultralytics import YOLO`.
-            - Use the provided `data.yaml`, device, epochs, batch size, imgsz, and other train params.
-            - Write logs to the given log_path via the provided logger pattern.
-            - Do NOT run shell/system commands. Do NOT write files outside the project_dir.
-            - If a local pretrained_weights path exists, load it and call train(..., pretrained=False) to prevent auto-download. If it does not exist, use the official weight name (e.g., yolov8n.pt / yolov8n-seg.pt) and let YOLO resolve it.
-            """
-        )
+        model_desc = task.model.custom_description or ""
+
+        if task.model.kind == "custom":
+            instructions = dedent(
+                """
+                You are an assistant that writes a single Python training script for a custom vision model (detection/classification).
+                Constraints:
+                - Only produce Python code fenced in ```python ... ```.
+                - Keep the script concise (<= 300 lines).
+                - Use PyTorch; design the architecture based on the provided description.
+                - Respect hardware limits from the environment summary (GPU memory, CPU core count); if GPU memory is <8GB or unknown, keep parameters <= 10M and batch_size <= 4, and prefer small channel sizes.
+                - Catch CUDA OOM and log a clear message to log_path before exiting.
+                - Use the provided dataset paths/task type; create dataloaders accordingly.
+                - Write logs to the given log_path via the provided logger pattern.
+                - If required modules (e.g., torch, torchvision) are missing, log the missing module to log_path and exit with error.
+                - Do NOT run shell/system commands. Do NOT write files outside the project_dir.
+                - Training loops should be concise, with a main() entry point.
+                """
+            )
+        else:
+            instructions = dedent(
+                """
+                You are an assistant that writes a single Python training script for Ultralytics YOLO (v8/v10).
+                Constraints:
+                - Only produce Python code fenced in ```python ... ```.
+                - Keep the script concise (<= 300 lines).
+                - Use `from ultralytics import YOLO`.
+                - Use the provided `data.yaml`, device, epochs, batch size, imgsz, and other train params.
+                - Write logs to the given log_path via the provided logger pattern.
+                - If required modules (e.g., ultralytics, torch) are missing, log the missing module to log_path and exit with error.
+                - Respect hardware limits; if GPU memory is small (<8GB) or unknown, default to batch_size <= 4 and consider reducing imgsz if needed.
+                - Do NOT run shell/system commands. Do NOT write files outside the project_dir.
+                - If a local pretrained_weights path exists, load it and call train(..., pretrained=False) to prevent auto-download. If it does not exist, use the official weight name (e.g., yolov8n.pt / yolov8n-seg.pt) and let YOLO resolve it.
+                """
+            )
         return dedent(
             f"""
             {instructions}
 
             Task config (JSON):
             {json.dumps(task_json, ensure_ascii=False, indent=2)}
+
+            Custom model description (if any):
+            {model_desc}
 
             Environment summary:
             {env_summary}
@@ -117,7 +143,12 @@ class DeepSeekClient:
     def _render_template(self, task: TaskConfig, env_summary: str) -> str:
         cfg = task
         # Default weight names: yolov8n.pt / yolov8n-seg.pt etc.
-        default_weight = f"{cfg.model.family}{cfg.model.size}" + ("-seg.pt" if cfg.model.task == "segment" else ".pt")
+        suffix = ".pt"
+        if cfg.model.task == "segment":
+            suffix = "-seg.pt"
+        elif cfg.model.task == "classify":
+            suffix = "-cls.pt"
+        default_weight = f"{cfg.model.family}{cfg.model.size}{suffix}"
         model_ref = cfg.model.pretrained_weights or default_weight
         data_path = cfg.dataset.data_yaml or ""
         params = cfg.train_params
@@ -160,8 +191,9 @@ class DeepSeekClient:
         template = f'''
 import json
 import logging
+import sys
+import importlib
 from pathlib import Path
-from ultralytics import YOLO
 
 
 def setup_logger(log_file: str):
@@ -182,6 +214,17 @@ def main():
     log_path.parent.mkdir(parents=True, exist_ok=True)
     logger = setup_logger(str(log_path))
     logger.info("Starting YOLO training")
+    try:
+        ultralytics = importlib.import_module("ultralytics")
+        YOLO = getattr(ultralytics, "YOLO")
+    except Exception as exc:
+        logger.error("Module import failed (ultralytics/YOLO): %s", exc)
+        sys.exit(1)
+    try:
+        import torch  # noqa: F401
+    except Exception as exc:
+        logger.error("Module import failed (torch): %s", exc)
+        sys.exit(1)
     try:
         env_info = json.loads({env_summary_literal})
     except Exception:
@@ -251,7 +294,13 @@ if __name__ == "__main__":
         """
         Generate training script; respect task.script_mode.
         """
-        use_api = task.script_mode == "deepseek" and self.api_key
+        if task.model.kind == "custom":
+            if not self.api_key:
+                raise RuntimeError("Custom model generation requires DEEPSEEK_API_KEY")
+            use_api = True
+        else:
+            use_api = task.script_mode == "deepseek" and self.api_key
+
         if not use_api:
             return self._render_template(task, env_summary)
 

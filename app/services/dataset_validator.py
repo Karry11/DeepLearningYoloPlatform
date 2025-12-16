@@ -53,6 +53,8 @@ def _validate_label_file(path: Path, task_type: str) -> bool:
         return False
     if not content:
         return False
+    if task_type == "classify":
+        return True
     if task_type == "detect":
         for line in content[:5]:
             parts = line.strip().split()
@@ -73,6 +75,13 @@ def _validate_label_file(path: Path, task_type: str) -> bool:
             except ValueError:
                 return False
     return True
+
+
+def _infer_class_names_from_dirs(directory: Path) -> List[str]:
+    """Infer class names from immediate subdirectories (classification)."""
+    if not directory.exists():
+        return []
+    return sorted([p.name for p in directory.iterdir() if p.is_dir()])
 
 
 def _load_yaml(path: Path) -> Dict:
@@ -97,7 +106,30 @@ def validate_dataset(config: DatasetConfig) -> DatasetValidationResult:
     names: List[str] = []
     nc: Optional[int] = None
 
-    if config.data_yaml:
+    # Classification: prefer folder structure, no label files.
+    if config.task_type == "classify" and not config.data_yaml:
+        train_dir = _resolve(config.train_dir, root) or root / "train"
+        val_dir = _resolve(config.val_dir, root) or root / "val"
+        test_dir = _resolve(config.test_dir, root) or root / "test"
+        for key, d in [("train", train_dir), ("val", val_dir)]:
+            if not d or not d.exists():
+                messages.append(
+                    ValidationMessage(level="error", text=f"{key} directory missing: {d}")
+                )
+        if train_dir and train_dir.exists():
+            names = _infer_class_names_from_dirs(train_dir)
+            if not names:
+                messages.append(
+                    ValidationMessage(
+                        level="warning",
+                        text="No class subdirectories found under train; classification labels may be missing.",
+                    )
+                )
+            nc = len(names)
+        messages.append(
+            ValidationMessage(level="info", text=f"Using folder-based classification under {root}")
+        )
+    elif config.data_yaml:
         data_path = _resolve(config.data_yaml, root)
         if not data_path or not data_path.exists():
             return DatasetValidationResult(
@@ -183,21 +215,22 @@ def validate_dataset(config: DatasetConfig) -> DatasetValidationResult:
     # Label sanity (best effort)
     labels_dir = _resolve(config.labels_dir, root) if config.labels_dir else None
     label_checks: List[Path] = []
-    if labels_dir and labels_dir.exists():
-        label_checks = [
-            p
-            for p in labels_dir.rglob("*.txt")
-            if p.is_file() and not p.name.startswith(".")
-        ][:5]
-    for label_path in label_checks:
-        if not _validate_label_file(label_path, config.task_type):
-            messages.append(
-                ValidationMessage(
-                    level="warning",
-                    text=f"Label format issue: {label_path.name}",
+    if config.task_type != "classify":
+        if labels_dir and labels_dir.exists():
+            label_checks = [
+                p
+                for p in labels_dir.rglob("*.txt")
+                if p.is_file() and not p.name.startswith(".")
+            ][:5]
+        for label_path in label_checks:
+            if not _validate_label_file(label_path, config.task_type):
+                messages.append(
+                    ValidationMessage(
+                        level="warning",
+                        text=f"Label format issue: {label_path.name}",
+                    )
                 )
-            )
-            break
+                break
 
     ok = not any(m.level == "error" for m in messages)
     return DatasetValidationResult(ok=ok, messages=messages, stats=stats)

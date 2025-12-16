@@ -17,6 +17,7 @@ from app.models import (
     TaskRecord,
     TaskStatus,
     TrainParams,
+    LogTail,
 )
 from app.services import dataset_validator, resource_checker
 from app.services.deepseek_client import DeepSeekClient
@@ -129,10 +130,12 @@ def _build_task_config(
     dataset_root: str,
     data_yaml: Optional[str],
     task_type: str,
+    model_kind: str,
     model_family: str,
     model_task: str,
     model_size: str,
     pretrained_weights: Optional[str],
+    custom_description: Optional[str],
     device: str,
     epochs: int,
     batch_size: int,
@@ -153,11 +156,13 @@ def _build_task_config(
         task_type=task_type,  # type: ignore[arg-type]
     )
     model_cfg = ModelConfig(
+        kind=model_kind,  # type: ignore[arg-type]
         family=model_family,  # type: ignore[arg-type]
         task=model_task,  # type: ignore[arg-type]
         size=model_size,  # type: ignore[arg-type]
         pretrained_weights=pretrained_weights,
         device=device,
+        custom_description=custom_description,
     )
     train_params = TrainParams(
         epochs=epochs,
@@ -198,6 +203,48 @@ def _maybe_locate_results(task: TaskRecord) -> Optional[Path]:
     return None
 
 
+def _retry_task(task: TaskRecord, log_tail: "LogTail") -> Optional[TaskRecord]:
+    """Attempt a DeepSeek-assisted retry with a new script version."""
+    if task.retries >= task.max_retry:
+        task_manager.update_status(task.task_id, TaskStatus.FAILED, error_message="Max retries reached")
+        return task
+
+    last_snippet = "\n".join(log_tail.lines[-100:]) if log_tail.lines else ""
+    prev_script = None
+    try:
+        prev_script = Path(task.config.runtime.script_path).read_text(encoding="utf-8")
+    except Exception:
+        prev_script = None
+
+    new_version = task.script_version + 1
+    cfg_copy = task.config.model_copy(deep=True)
+    cfg_copy.runtime.script_path = str(Path(cfg_copy.runtime.project_dir) / f"train_v{new_version}.py")
+
+    env_summary = resource_checker.summarize_environment().get("as_json", "")
+    try:
+        script = deepseek.generate_script(cfg_copy, env_summary, last_snippet, prev_script)
+        _persist_script(cfg_copy, script)
+    except Exception as exc:
+        return task_manager.update_status(task.task_id, TaskStatus.FAILED, error_message=str(exc))
+
+    updated = task_manager.update_task(
+        task.task_id,
+        retries=task.retries + 1,
+        script_version=new_version,
+        config=cfg_copy,
+        status=TaskStatus.RETRYING,
+        error_message=None,
+    )
+    if not updated:
+        return task
+    try:
+        executor.start(updated)
+        task_manager.update_status(task.task_id, TaskStatus.RUNNING)
+    except Exception as exc:
+        return task_manager.update_status(task.task_id, TaskStatus.FAILED, error_message=str(exc))
+    return updated
+
+
 def _sync_status(task: TaskRecord) -> TaskRecord:
     rc = executor.poll(task.task_id)
     if rc is None:
@@ -209,6 +256,11 @@ def _sync_status(task: TaskRecord) -> TaskRecord:
         log_tail = tail_log(Path(task.config.runtime.log_path))
         if rc != 0 or contains_error(log_tail.lines):
             err_msg = " ".join(log_tail.lines[-5:]) if log_tail.lines else "Unknown error"
+        # Retry logic: if failed and retries remain, regenerate script via DeepSeek and restart.
+        if new_status == TaskStatus.FAILED and task.retries < task.max_retry:
+            retry_task = _retry_task(task, log_tail)
+            return retry_task or task
+
         updated = task_manager.update_status(task.task_id, new_status, error_message=err_msg)
         return updated or task
     return task
@@ -287,10 +339,12 @@ def start_task(
     dataset_root: str,
     data_yaml: str,
     task_type: str,
+    model_kind: str,
     model_family: str,
     model_task: str,
     model_size: str,
     pretrained_weights: str,
+    custom_description: str,
     device: str,
     epochs: int,
     batch_size: int,
@@ -307,10 +361,12 @@ def start_task(
         dataset_root=dataset_root,
         data_yaml=data_yaml or None,
         task_type=task_type,
+        model_kind=model_kind,
         model_family=model_family,
         model_task=model_task,
         model_size=model_size,
         pretrained_weights=pretrained_weights or None,
+        custom_description=custom_description or None,
         device=device or "0",
         epochs=int(epochs),
         batch_size=int(batch_size),
@@ -328,10 +384,18 @@ def start_task(
         details = "; ".join([m.text for m in validation.messages])
         return f"Dataset validation failed: {details}"
 
+    # Custom模型需要 DeepSeek 模式
+    if cfg.model.kind == "custom" and cfg.script_mode != "deepseek":
+        return "自定义模型需要选择 DeepSeek 生成脚本模式。"
+
     record = task_manager.create_task(cfg)
     env_summary = resource_checker.summarize_environment().get("as_json", "")
-    script = deepseek.generate_script(cfg, env_summary)
-    _persist_script(cfg, script)
+    try:
+        script = deepseek.generate_script(cfg, env_summary)
+        _persist_script(cfg, script)
+    except Exception as exc:
+        task_manager.update_status(cfg.task_id, TaskStatus.FAILED, error_message=str(exc))
+        return f"Failed to generate script: {exc}"
 
     try:
         executor.start(record)
@@ -427,7 +491,7 @@ def build_ui():
                             elem_classes=["compact-input"],
                         )
                         task_type = gr.Dropdown(
-                            ["detect", "segment"],
+                            ["detect", "segment", "classify"],
                             label="任务类型",
                             value="detect",
                             elem_classes=["compact-input"],
@@ -448,6 +512,12 @@ def build_ui():
                 with gr.Column(scale=6):
                     with gr.Group(elem_classes=["card"]):
                         gr.Markdown("#### 模型配置")
+                        model_kind = gr.Radio(
+                            ["yolo", "custom"],
+                            label="模型类型",
+                            value="yolo",
+                            info="YOLO 标准模型或自定义描述模型（自定义需 DeepSeek 生成脚本）",
+                        )
                         with gr.Row():
                             model_family = gr.Dropdown(
                                 ["yolov8", "yolov10"],
@@ -456,7 +526,7 @@ def build_ui():
                                 elem_classes=["compact-input"],
                             )
                             model_task = gr.Dropdown(
-                                ["detect", "segment"],
+                                ["detect", "segment", "classify"],
                                 label="模型任务",
                                 value="detect",
                                 elem_classes=["compact-input"],
@@ -471,6 +541,11 @@ def build_ui():
                             label="预训练权重路径（可选）",
                             value="/mnt/e/IDE/AI_Project/yolo_platform/model/yolov8n.pt",
                             elem_classes=["compact-input"],
+                        )
+                        custom_description = gr.Textbox(
+                            label="自定义模型描述",
+                            placeholder="例如：ResNet50 backbone + FPN + 3 heads；或简单描述 5 层卷积网络用于分类/检测",
+                            lines=3,
                         )
                         device = gr.Textbox(label="设备（如 0 或 0,1 或 cpu）", value="0", elem_classes=["compact-input"])
 
@@ -505,10 +580,12 @@ def build_ui():
                                 dataset_root,
                                 data_yaml,
                                 task_type,
+                                model_kind,
                                 model_family,
                                 model_task,
                                 model_size,
                                 pretrained_weights,
+                                custom_description,
                                 device,
                                 epochs,
                                 batch_size,

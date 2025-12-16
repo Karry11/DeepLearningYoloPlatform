@@ -24,7 +24,9 @@ class DatasetConfig(BaseModel):
     data_yaml: Optional[str] = Field(
         None, description="Path to YOLO data.yaml; required for YOLO style datasets"
     )
-    task_type: Literal["detect", "segment"] = Field(..., description="YOLO task type")
+    task_type: Literal["detect", "segment", "classify"] = Field(
+        ..., description="Task type: detect/segment/classify"
+    )
     train_dir: Optional[str] = Field(None, description="Optional train images dir")
     val_dir: Optional[str] = Field(None, description="Optional val images dir")
     test_dir: Optional[str] = Field(None, description="Optional test images dir")
@@ -32,14 +34,19 @@ class DatasetConfig(BaseModel):
 
 
 class ModelConfig(BaseModel):
-    family: Literal["yolov8", "yolov10"]
-    task: Literal["detect", "segment"]
+    kind: Literal["yolo", "custom"] = "yolo"
+    family: Literal["yolov8", "yolov10"] = "yolov8"
+    task: Literal["detect", "segment", "classify"] = "detect"
     size: Literal["n", "s", "m", "l", "x"] = "n"
     pretrained_weights: Optional[str] = None
     device: str = "0"
+    custom_description: Optional[str] = None
 
     @property
     def model_name(self) -> str:
+        if self.kind == "custom":
+            snippet = (self.custom_description or "custom").strip()
+            return f"custom:{snippet[:24]}"
         return f"{self.family}{self.size}-{self.task}"
 
 
