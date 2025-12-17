@@ -193,6 +193,23 @@ def _persist_script(task: TaskConfig, script: str) -> None:
     path.write_text(script, encoding="utf-8")
 
 
+FORBIDDEN_SCRIPT_TOKENS = [
+    "subprocess",
+    "os.system",
+    "shutil.rmtree",
+    "requests",
+    "urllib",
+    "socket",
+]
+
+
+def _validate_script_safety(script: str) -> None:
+    lowered = script.lower()
+    for token in FORBIDDEN_SCRIPT_TOKENS:
+        if token in lowered:
+            raise ValueError(f"Generated script contains forbidden token: {token}")
+
+
 def _maybe_locate_results(task: TaskRecord) -> Optional[Path]:
     results_path = Path(task.config.runtime.results_path)
     if results_path.exists():
@@ -223,6 +240,7 @@ def _retry_task(task: TaskRecord, log_tail: "LogTail") -> Optional[TaskRecord]:
     env_summary = resource_checker.summarize_environment().get("as_json", "")
     try:
         script = deepseek.generate_script(cfg_copy, env_summary, last_snippet, prev_script)
+        _validate_script_safety(script)
         _persist_script(cfg_copy, script)
     except Exception as exc:
         return task_manager.update_status(task.task_id, TaskStatus.FAILED, error_message=str(exc))
@@ -392,6 +410,7 @@ def start_task(
     env_summary = resource_checker.summarize_environment().get("as_json", "")
     try:
         script = deepseek.generate_script(cfg, env_summary)
+        _validate_script_safety(script)
         _persist_script(cfg, script)
     except Exception as exc:
         task_manager.update_status(cfg.task_id, TaskStatus.FAILED, error_message=str(exc))

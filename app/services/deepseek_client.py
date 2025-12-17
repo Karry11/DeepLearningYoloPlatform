@@ -49,6 +49,14 @@ class DeepSeekClient:
         log_part = last_log_snippet or "No error log available."
         prev_part = previous_script or ""
         model_desc = task.model.custom_description or ""
+        # Merge extra env info from python_env.json if present at repo root
+        extra_env = ""
+        root_env_path = Path(__file__).resolve().parents[2] / "python_env.json"
+        if root_env_path.exists():
+            try:
+                extra_env = root_env_path.read_text(encoding="utf-8")
+            except Exception:
+                extra_env = ""
 
         if task.model.kind == "custom":
             instructions = dedent(
@@ -60,6 +68,7 @@ class DeepSeekClient:
                 - Use PyTorch; design the architecture based on the provided description.
                 - Respect hardware limits from the environment summary (GPU memory, CPU core count); if GPU memory is <8GB or unknown, keep parameters <= 10M and batch_size <= 4, and prefer small channel sizes.
                 - Catch CUDA OOM and log a clear message to log_path before exiting.
+                - Configure logging with logging.basic(..., force=True) and avoid duplicate handlers.
                 - Use the provided dataset paths/task type; create dataloaders accordingly.
                 - Write logs to the given log_path via the provided logger pattern.
                 - If required modules (e.g., torch, torchvision) are missing, log the missing module to log_path and exit with error.
@@ -77,6 +86,7 @@ class DeepSeekClient:
                 - Use `from ultralytics import YOLO`.
                 - Use the provided `data.yaml`, device, epochs, batch size, imgsz, and other train params.
                 - Write logs to the given log_path via the provided logger pattern.
+                - Configure logging with logging.basic(..., force=True) and avoid duplicate handlers.
                 - If required modules (e.g., ultralytics, torch) are missing, log the missing module to log_path and exit with error.
                 - Respect hardware limits; if GPU memory is small (<8GB) or unknown, default to batch_size <= 4 and consider reducing imgsz if needed.
                 - Do NOT run shell/system commands. Do NOT write files outside the project_dir.
@@ -95,6 +105,9 @@ class DeepSeekClient:
 
             Environment summary:
             {env_summary}
+
+            Additional environment (from python_env.json if present):
+            {extra_env}
 
             Last log snippet (for fixes):
             {log_part}
@@ -197,16 +210,16 @@ from pathlib import Path
 
 
 def setup_logger(log_file: str):
-    logger = logging.getLogger("train")
-    logger.setLevel(logging.INFO)
-    fmt = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
-    fh = logging.FileHandler(log_file)
-    fh.setFormatter(fmt)
-    sh = logging.StreamHandler()
-    sh.setFormatter(fmt)
-    logger.addHandler(fh)
-    logger.addHandler(sh)
-    return logger
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler(sys.stdout),
+        ],
+        force=True,
+    )
+    return logging.getLogger("train")
 
 
 def main():
